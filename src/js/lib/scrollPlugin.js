@@ -85,13 +85,14 @@
       function slide(e) { // определение в какую сторону пролистываем
         e.preventDefault();
         e.stopPropagation();
-        if (e.originalEvent.wheelDelta < 0) {
+        var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
+        if (delta < 0) {
           moveDown();
         } else {
           moveUp();
         }
         isActiveByHash();
-        var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
+
         console.log(delta);
 
       }
