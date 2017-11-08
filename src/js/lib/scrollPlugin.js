@@ -28,7 +28,8 @@
 
   function animation(section, time) {
     topOfSection = $(section).offset().top;
-    $('html, body').animate({scrollTop: topOfSection}, time);
+    $('html, body').animate({scrollTop: parseInt(topOfSection)}, time);
+    $('html, body').clearQueue();
   }
 
   var defaults = {
@@ -52,14 +53,15 @@
 
       function moveDown() { // пролистывание вниз
         if (!window.location.hash) {
+          animation('#section2', settings.slideTime);
           window.location.hash = '#section2';
           pageNumber();
         } else {
           pageNumber(); //определяем номер страницы
           if (pageNum < sections.length) {
+            animation(`#section${+pageNum + 1}`, settings.slideTime);
             window.location.hash = `#section${+pageNum + 1}`;
             pageNumber(); //перезаписать полученный номер страницы для сравнения
-            animation(window.location.hash, settings.slideTime);
           } else {
             return;
           }
@@ -73,9 +75,9 @@
           pageNumber();
           if (pageNum > 1) {
             pageNumber();
+            animation(`#section${+pageNum - 1}`, settings.slideTime);
             window.location.hash = `#section${+pageNum - 1}`;
             pageNumber();
-            animation(window.location.hash, settings.slideTime);
           } else {
             return;
           }
@@ -86,19 +88,15 @@
         e.preventDefault();
         e.stopPropagation();
         var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
-        if (delta < 0) {
-          moveDown();
-        } else {
+        if (delta >= 0) {
           moveUp();
+        } else {
+          moveDown();
         }
         isActiveByHash();
-
-        console.log(delta);
-
       }
 
-      $(document).bind('mousewheel DOMMouseScroll MozMousePixelScroll', slide); //событие колеса
-      // $('body').clearQueue();
+      $(document).on('mousewheel DOMMouseScroll MozMousePixelScroll', slide); //событие колеса
 
       $('.scroll-plugin').find('.pagination').find('a').on('click', function() { //переход по клику на круг пагинации
         $('.scroll-plugin').find('.pagination').find('a').removeClass('is-active');
@@ -108,10 +106,9 @@
 
     },
     goto : function(page) { //метод для перехода по номеру секции
+      animation(`#section${page}`, 500);
       window.location.hash = `#section${page}`;
       id = window.location.hash;
-      topOfSection = $(id).offset().top;
-      $('html, body').animate({scrollTop: topOfSection}, 500);
       pageNumber();
       isActiveByHash();
     }
