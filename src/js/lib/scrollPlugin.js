@@ -6,13 +6,20 @@
   var pageNum;
   var topOfSection;
   var id;
+  var animationTime;
 
-  function isActiveByHash() {
+  function animating(section, time) { //Анимирование слайда
+    topOfSection = $(section).offset().top;
+    $('html, body').animate({scrollTop: parseInt(topOfSection)}, time);
+    $('html, body').clearQueue();
+  }
+
+  function isActiveByHash() { // Установка активного круга
     $('.scroll-plugin').find('.pagination').find('a').removeClass('is-active');
     $('.scroll-plugin').find('.pagination').find(`a[href="${hash}"]`).addClass('is-active');
   }
 
-  function pageNumber() {
+  function pageNumber() { // Определение номера страницы
     hash = window.location.hash;
     pageNum = myRe.exec(hash)[0];
   }
@@ -26,21 +33,28 @@
     $('.pagination').css('top', `calc(50vh - ${paginationHeight/2}px)`);
   }
 
-  function animation(section, time) {
-    topOfSection = $(section).offset().top;
-    $('html, body').animate({scrollTop: parseInt(topOfSection)}, time);
-    $('html, body').clearQueue();
-  }
-
   var defaults = {
     dots: false,
-    slideTime: 500
+    slideTime: 500,
+    animationStart: null,
+    animationEnd: null,
   };
 
   var methods = {
     init : function( options ) {
+      animationTime = options.slideTime;
 
       var settings = $.extend(defaults, options);
+
+      function animation(section, time) { //Анимация + функции до и после(если есть)
+        if (settings.animationStart) {
+          settings.animationStart();
+        }
+        animating(section, time);
+        if (settings.animationEnd) {
+          setTimeout(settings.animationEnd, animationTime);
+        }
+      }
 
       for (var i = 0; i < sections.length; i++) {
         $(sections[i]).attr('id', `section${i + 1}`); // задаем секциям айдишники
@@ -53,7 +67,7 @@
 
       function moveDown() { // пролистывание вниз
         if (!window.location.hash) {
-          animation('#section2', settings.slideTime);
+          animation('#section2', animationTime);
           window.location.hash = '#section2';
           pageNumber();
         } else {
@@ -75,7 +89,7 @@
           pageNumber();
           if (pageNum > 1) {
             pageNumber();
-            animation(`#section${+pageNum - 1}`, settings.slideTime);
+            animation(`#section${+pageNum - 1}`, animationTime);
             window.location.hash = `#section${+pageNum - 1}`;
             pageNumber();
           } else {
@@ -106,7 +120,7 @@
 
     },
     goto : function(page) { //метод для перехода по номеру секции
-      animation(`#section${page}`, 500);
+      animating(`#section${page}`, animationTime);
       window.location.hash = `#section${page}`;
       id = window.location.hash;
       pageNumber();
@@ -115,7 +129,6 @@
   };
 
   $.fn.scrollPlugin = function(method) { //определение метода
-
     if ( methods[method] ) {
       return methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
     } else if ( typeof method === 'object' || ! method ) {
